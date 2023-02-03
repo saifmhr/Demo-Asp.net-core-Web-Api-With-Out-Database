@@ -10,83 +10,91 @@ namespace WebApiPracticeEF.Controllers
     [ApiController]
     public class SuperHeroController : ControllerBase
     {
-        private static List<SuperHero> superHeroes = new List<SuperHero>
-            {
-                new SuperHero
-                {
-                    Id = 1,
-                    Name = "Spider Man",
-                    FirstName = "Petar",
-                    LastName = "Parker",
-                    Place = "New york"
-                },
-                new SuperHero
-                {
-                    Id = 2,
-                    Name="Action",
-                    FirstName = "Parbhas",
-                    LastName = "Parker",
-                    Place = "South India"
-                },
-                 new SuperHero
-                {
-                    Id = 3,
-                    Name="Romantic",
-                    FirstName = "Sharukh",
-                    LastName = "Khan",
-                    Place = "India"
-                }
+        //private static List<SuperHero> superHeroes = new List<SuperHero>
+        //    {
+        //        new SuperHero
+        //        {
+        //            Id = 1,
+        //            Name = "Spider Man",
+        //            FirstName = "Petar",
+        //            LastName = "Parker",
+        //            Place = "New york"
+        //        },
+        //        new SuperHero
+        //        {
+        //            Id = 2,
+        //            Name="Action",
+        //            FirstName = "Parbhas",
+        //            LastName = "Parker",
+        //            Place = "South India"
+        //        },
+        //         new SuperHero
+        //        {
+        //            Id = 3,
+        //            Name="Romantic",
+        //            FirstName = "Sharukh",
+        //            LastName = "Khan",
+        //            Place = "India"
+        //        }
 
-                };
+        //        };
+
+        private readonly DataContext _dataContext;
+        public SuperHeroController(DataContext dataContext)
+        {
+            _dataContext = dataContext;
+        }
 
         [HttpGet]
         public async Task<ActionResult<List<SuperHero>>> Get()
         {
-            
-            return Ok( superHeroes );             
-        
+
+            return Ok( await _dataContext.superHeroes.ToListAsync());
+
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<List<SuperHero>>> GetById(int id)
         {
-            var heros = superHeroes.Find(h=>h.Id==id);
-            if(heros==null)
+            var heros =await _dataContext.superHeroes.FindAsync(id);
+            if (heros == null)
                 return BadRequest("Hero is Not found");
-            return Ok( heros );
+            return Ok(heros);
         }
 
         [HttpPost]
         public async Task<ActionResult<List<SuperHero>>> AddHero(SuperHero hero)
         {
-            superHeroes.Add(hero);
-            return Ok( superHeroes );
+           _dataContext.superHeroes.Add(hero);
+            await _dataContext.SaveChangesAsync();
+            return Ok(await _dataContext.superHeroes.ToListAsync());
         }
 
         [HttpPut]
-        public async Task<ActionResult<List<SuperHero>>> Update(SuperHero super )
+        public async Task<ActionResult<List<SuperHero>>> Update(SuperHero request)
         {
-            var Super=superHeroes.Find(h=>h.Id==super.Id);
-            if (super == null)
+            var DBSuper =await _dataContext.superHeroes.FindAsync(request.Id);
+            if (DBSuper == null)
                 return BadRequest("Not Found");
 
-            Super.Name=super.Name;
-            Super.FirstName=super.FirstName;
-            Super.LastName=super.LastName;
-            Super.Place=super.Place;
+            DBSuper.Name = request.Name;
+            DBSuper.FirstName = request.FirstName;
+            DBSuper.LastName = request.LastName;
+            DBSuper.Place = request.Place;
 
-            return Ok(super);
+            return Ok(await _dataContext.superHeroes.ToListAsync());
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<List<SuperHero>>> Delete(int id)
         {
-            var delete=superHeroes.Find(h=>h.Id==id);
-            if (delete == null)
+            var Dbdelete =await _dataContext.superHeroes.FindAsync(id);
+            if (Dbdelete == null)
                 return BadRequest("Not Found");
 
-            superHeroes.Remove(delete);
-            return Ok(superHeroes);
+           _dataContext.superHeroes.Remove(Dbdelete);
+            await _dataContext.SaveChangesAsync();
+            return Ok(await _dataContext.superHeroes.ToListAsync());
         }
     }
 }
